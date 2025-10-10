@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment and secrets
+.env
+.env.local
+.env.*.local
+
+# Claude Code
+.claude/
+.session_state
+
+# Project-specific runtime files
+logs/
+pids/
+workspaces/
+/tmp/
+
+# Downloaded reference files
+a2a_specification.html
+a2a_specification_files/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Test artifacts
+*.log
+test_output/

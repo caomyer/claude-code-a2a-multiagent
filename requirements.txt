@@ -1,0 +1,24 @@
+# Core A2A Protocol
+a2a-sdk[http-server]>=0.3.0
+
+# Claude API for intelligence layer
+anthropic>=0.39.0
+
+# HTTP client for A2A calls
+httpx>=0.27.0
+
+# Terminal UI and formatting
+rich>=13.7.0
+
+# Environment configuration
+python-dotenv>=1.0.0
+
+# ASGI server for A2A agents
+uvicorn>=0.30.0
+
+# Testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+
+# CLI support
+click>=8.2.0
