@@ -13,6 +13,7 @@ from a2a.server.agent_execution import AgentExecutor
 from a2a.server.agent_execution.context import RequestContext
 from a2a.server.events.event_queue import EventQueue
 from a2a.server.tasks import TaskUpdater
+from a2a.server.tasks.task_manager import TaskManager
 from a2a.types import (
     AgentCard,
     MessageSendParams,
@@ -27,6 +28,7 @@ from a2a.types import (
 
 from .agent_config import AgentConfig
 from .claude_terminal import ClaudeCodeTerminal
+from .task_store import ClaudeCodeTaskStore
 from .terminal_utils import TerminalLogger
 
 
@@ -55,6 +57,12 @@ class BaseAgent(AgentExecutor):
         self.logger = TerminalLogger(
             config.name,
             log_file=Path(f"logs/{config.name}.log")
+        )
+
+        # Task Management: TaskStore for persistence
+        self.task_store = ClaudeCodeTaskStore(
+            workspace_dir=config.workspace,
+            agent_name=config.name
         )
 
         # Intelligence Layer: Claude API
@@ -133,6 +141,16 @@ class BaseAgent(AgentExecutor):
             context: Request context with message and task info
             event_queue: Queue for sending status updates
         """
+        # Initialize task management
+        task_manager = TaskManager(
+            task_id=context.task_id,
+            context_id=context.context_id,
+            task_store=self.task_store,
+            initial_message=context.message,
+            context=context.server_context if hasattr(context, 'server_context') else None
+        )
+
+        # Convenience updater for status updates
         updater = TaskUpdater(event_queue, context.task_id, context.context_id)
 
         try:
@@ -141,9 +159,15 @@ class BaseAgent(AgentExecutor):
 
             self.logger.task_info(context.task_id, task_description)
 
-            # Status: Submitted
-            if not context.current_task:
+            # Get or create task
+            task = await task_manager.get_task()
+            if not task:
+                # Task doesn't exist yet - will be created by first status update
+                # Status: Submitted
                 await updater.update_status(TaskState.submitted)
+                self.logger.debug(f"Created new task {context.task_id}")
+            else:
+                self.logger.debug(f"Continuing existing task {context.task_id}")
 
             # Status: Working
             await updater.update_status(TaskState.working)
@@ -576,6 +600,43 @@ All files are available in: {self.claude_terminal.workspace}
 """
 
         return results
+
+    # =========================================================================
+    # Task Management Helpers
+    # =========================================================================
+
+    async def get_task(self, task_id: str) -> Optional[Task]:
+        """
+        Get a task by ID.
+
+        Args:
+            task_id: Task ID
+
+        Returns:
+            Task if found, None otherwise
+        """
+        return await self.task_store.get(task_id)
+
+    def get_task_stats(self) -> dict:
+        """
+        Get statistics about tasks.
+
+        Returns:
+            Dictionary with task statistics
+        """
+        return self.task_store.get_task_stats()
+
+    async def cleanup_old_tasks(self, keep_recent: int = 10) -> int:
+        """
+        Clean up old completed tasks.
+
+        Args:
+            keep_recent: Number of recent tasks to keep
+
+        Returns:
+            Number of tasks cleaned up
+        """
+        return self.task_store.cleanup_completed_tasks(keep_recent)
 
     # =========================================================================
     # Helper Methods
