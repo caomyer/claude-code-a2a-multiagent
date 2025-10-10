@@ -51,6 +51,9 @@ class AgentConfig:
     related_agents: list[str] = field(default_factory=list)
     """Names of agents this agent frequently coordinates with"""
 
+    agent_registry: dict[str, str] = field(default_factory=dict)
+    """Registry mapping agent names to their URLs (e.g., {'frontend': 'http://localhost:8001'})"""
+
     # Workspace
     workspace: Optional[Path] = None
     """Workspace directory for Claude Code (auto-generated if None)"""
@@ -79,6 +82,21 @@ class AgentConfig:
 
         # Ensure workspace exists
         self.workspace.mkdir(parents=True, exist_ok=True)
+
+        # Auto-generate agent_registry from related_agents if not provided
+        if not self.agent_registry and self.related_agents:
+            # Default port mapping for known agents
+            default_ports = {
+                'frontend': 8001,
+                'backend': 8002,
+                'pm': 8003,
+                'ux': 8004,
+                'host': 8000
+            }
+            self.agent_registry = {
+                agent: f"http://localhost:{default_ports.get(agent, 8000 + hash(agent) % 100)}"
+                for agent in self.related_agents
+            }
 
         # Auto-generate skills from capabilities if not provided
         if not self.skills and self.capabilities:
@@ -149,6 +167,7 @@ Always provide clear, actionable output."""
             'skills': self.skills,
             'system_prompt': self.system_prompt,
             'related_agents': self.related_agents,
+            'agent_registry': self.agent_registry,
             'workspace': str(self.workspace),
             'model': self.model,
             'max_tokens': self.max_tokens,

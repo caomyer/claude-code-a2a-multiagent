@@ -148,11 +148,18 @@ class ClaudeCodeTerminal:
             return False
 
         try:
-            self.logger.tmux_command(self.session_name, command)
+            # Normalize multi-line commands to single line
+            # Replace newlines with spaces to avoid tmux issues
+            normalized_command = command.replace('\n', ' ').replace('\r', ' ')
+            # Collapse multiple spaces into one
+            import re
+            normalized_command = re.sub(r'\s+', ' ', normalized_command).strip()
+
+            self.logger.tmux_command(self.session_name, normalized_command[:100] + "..." if len(normalized_command) > 100 else normalized_command)
 
             # Send the command followed by Enter
             subprocess.run(
-                ["tmux", "send-keys", "-t", self.session_name, command, "Enter"],
+                ["tmux", "send-keys", "-t", self.session_name, normalized_command, "Enter"],
                 check=True,
                 capture_output=True
             )
