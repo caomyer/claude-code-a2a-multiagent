@@ -2,6 +2,8 @@
 """Frontend agent server."""
 
 import asyncio
+import logging
+import sys
 import uvicorn
 
 from a2a.server.apps import A2AStarletteApplication
@@ -13,8 +15,38 @@ from .executor import ClaudeCodeExecutor
 from .config import FRONTEND_CONFIG
 
 
+def setup_logging(level=logging.DEBUG):
+    """Configure logging for the agent."""
+    # Create formatter
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+
+    # Configure root logger
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level)
+
+    # Console handler
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(level)
+    console_handler.setFormatter(formatter)
+    root_logger.addHandler(console_handler)
+
+    # Set specific loggers
+    logging.getLogger('src.agents.executor').setLevel(level)
+    logging.getLogger('a2a').setLevel(logging.INFO)  # Less verbose for A2A internals
+    logging.getLogger('uvicorn').setLevel(logging.INFO)
+
+
 async def start_frontend_agent():
     """Start the frontend agent server."""
+
+    # Setup logging first
+    import os
+    log_level = os.getenv('LOG_LEVEL', 'DEBUG').upper()
+    level = getattr(logging, log_level, logging.DEBUG)
+    setup_logging(level=level)
 
     config = FRONTEND_CONFIG
 
