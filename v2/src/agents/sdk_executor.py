@@ -1,6 +1,7 @@
 """Claude Agent SDK executor for A2A agents - new implementation with real-time streaming."""
 
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import override
 
@@ -81,6 +82,7 @@ class ClaudeSDKExecutor(AgentExecutor):
                         task.context_id,
                         task.id,
                     ),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 ),
                 final=False,
             )
@@ -201,6 +203,7 @@ class ClaudeSDKExecutor(AgentExecutor):
                             task.context_id,
                             task.id,
                         ),
+                        timestamp=datetime.now(timezone.utc).isoformat(),
                     ),
                     final=True,
                 )
@@ -225,6 +228,7 @@ class ClaudeSDKExecutor(AgentExecutor):
                             task.context_id,
                             task.id,
                         ),
+                        timestamp=datetime.now(timezone.utc).isoformat(),
                     ),
                     final=True,
                 )
@@ -250,6 +254,7 @@ class ClaudeSDKExecutor(AgentExecutor):
                         task.context_id,
                         task.id,
                     ),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 ),
                 final=False,
             )
