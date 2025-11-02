@@ -163,6 +163,7 @@ class ClaudeSDKExecutor(AgentExecutor):
                 else:
                     # Log unexpected message types
                     logger.warning(f"[{self.agent_role}] Unexpected message type: {type(message).__name__}")
+                    logger.info(f"[{self.agent_role}] receives an unexpected message: {message}")
 
             # 6. Send final artifact with result
             if not result_text.strip():

@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Frontend agent server - SDK version with real-time streaming.
+"""Backend agent server - SDK version with real-time streaming.
 
-This is a migration from frontend_agent.py that uses the new ClaudeSDKExecutor
-instead of the subprocess-based ClaudeCodeExecutor.
+This agent specializes in backend development including:
+- RESTful API design and implementation
+- Database schema design and migrations
+- Authentication and authorization
+- Error handling and validation
+- API documentation (OpenAPI/Swagger)
 
-Key differences:
+Key features:
 - Uses ClaudeSDKExecutor for real-time streaming
 - Enables streaming capability in AgentCapabilities
 - Better progress visibility for users
@@ -20,8 +24,8 @@ from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.tasks import InMemoryTaskStore
 from a2a.types import AgentCard, AgentCapabilities
 
-from .sdk_executor import ClaudeSDKExecutor  # 🆕 Use SDK executor
-from .config import FRONTEND_CONFIG
+from .sdk_executor import ClaudeSDKExecutor
+from .config import BACKEND_CONFIG
 
 
 def setup_logging(level=logging.DEBUG):
@@ -43,14 +47,14 @@ def setup_logging(level=logging.DEBUG):
     root_logger.addHandler(console_handler)
 
     # Set specific loggers
-    logging.getLogger('src.agents.sdk_executor').setLevel(level)  # 🆕 SDK executor logger
+    logging.getLogger('src.agents.sdk_executor').setLevel(level)
     logging.getLogger('a2a').setLevel(logging.INFO)  # Less verbose for A2A internals
     logging.getLogger('uvicorn').setLevel(logging.INFO)
-    logging.getLogger('claude_agent_sdk').setLevel(logging.INFO)  # 🆕 SDK logger
+    logging.getLogger('claude_agent_sdk').setLevel(logging.INFO)
 
 
-async def start_frontend_sdk_agent():
-    """Start the frontend agent server with SDK executor."""
+async def start_backend_sdk_agent():
+    """Start the backend agent server with SDK executor."""
 
     # Setup logging first
     import os
@@ -58,12 +62,12 @@ async def start_frontend_sdk_agent():
     level = getattr(logging, log_level, logging.DEBUG)
     setup_logging(level=level)
 
-    config = FRONTEND_CONFIG
+    config = BACKEND_CONFIG
 
     # 1. Setup workspace
     config.workspace.mkdir(parents=True, exist_ok=True)
 
-    # 2. Create executor (🆕 using SDK version)
+    # 2. Create executor (using SDK version)
     executor = ClaudeSDKExecutor(
         workspace=config.workspace,
         agent_role=config.role,
@@ -76,16 +80,16 @@ async def start_frontend_sdk_agent():
         task_store=InMemoryTaskStore(),
     )
 
-    # 4. Create agent card (🆕 streaming enabled!)
+    # 4. Create agent card (streaming enabled!)
     agent_card = AgentCard(
-        name=f"{config.role}_sdk",  # 🆕 Distinguish from subprocess version
+        name=f"{config.role}_SDK",
         description=f"{config.description} - Real-time streaming enabled",
         url=f"http://localhost:{config.port}",
-        version="2.0.0",  # 🆕 Version 2 for SDK
+        version="2.0.0",  # Version 2 for SDK
         default_input_modes=["text/plain"],
         default_output_modes=["text/plain"],
         capabilities=AgentCapabilities(
-            streaming=True,  # 🆕 Streaming is now supported!
+            streaming=True,  # Streaming is now supported!
             push_notifications=False
         ),
         skills=[],
@@ -110,9 +114,10 @@ async def start_frontend_sdk_agent():
 
     print(f"🚀 Starting {config.name} agent (SDK mode) on port {config.port}")
     print(f"✨ Real-time streaming enabled!")
+    print(f"📋 Specializations: REST APIs, Database design, Authentication, API docs")
     server = uvicorn.Server(uvicorn_config)
     await server.serve()
 
 
 if __name__ == "__main__":
-    asyncio.run(start_frontend_sdk_agent())
+    asyncio.run(start_backend_sdk_agent())
